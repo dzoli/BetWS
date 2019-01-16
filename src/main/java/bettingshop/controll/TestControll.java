@@ -6,12 +6,10 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import bettingshop.data.LoginParams;
@@ -43,8 +41,9 @@ public class TestControll {
 							.and("password").is(params.getPassword());
 		DBObject queryLogin = qb.get();
 		DBCursor cursor = userCol.find(queryLogin);
-		DBObject user = cursor.next();
-		User lUser = User.fromMongo(user);
+		
+		// get first user with params
+		User lUser = User.fromMongo(cursor.next());
 		return Response.ok(lUser).build();
 	}
 

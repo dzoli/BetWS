@@ -144,10 +144,15 @@ public class User {
 	}
 	
 	public static User fromMongo(DBObject user) {
-		return new User((ObjectId)user.get("_id"), 
-				(String)user.get("username"), (String)user.get("password"), 
-				(String)user.get("email"), (String)user.get("lastname"), 
-				(String)user.get("firstname"), (Double)user.get("credit"), 
-				(String)user.get("role"));
+		User u = new User();
+		u.set_id((ObjectId) user.get("_id"));
+		u.setUsername((String) user.get("username"));
+		u.setPassword((String) user.get("password"));
+		u.setEmail((String) user.get("email"));
+		u.setLastname((String) user.get("lastname"));
+		u.setFirstname((String) user.get("firstname"));
+		u.setCredit((Double) user.get("credit"));
+		u.setRole((String) user.get("role"));
+		return u;
 	}
 }
