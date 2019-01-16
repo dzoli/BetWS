@@ -8,6 +8,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import bettingshop.controll.TestControll;
+import bettingshop.data.LoginParams;
 import bettingshop.entity.User;
 
 @Path("user")
@@ -22,5 +23,15 @@ public class UserService {
 	public Response register(User user) throws Exception {
 		return tc.save(user);
 	}
+	
+	
+	@Path("/login")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response loginSubmit(LoginParams userData) throws Exception {
+		return tc.find(userData);
+	}
+	
+	
 	
 }

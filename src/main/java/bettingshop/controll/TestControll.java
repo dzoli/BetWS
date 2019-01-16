@@ -6,8 +6,15 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.QueryBuilder;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import bettingshop.data.LoginParams;
 import bettingshop.entity.User;
 import bettingshop.provider.MongoConnection;
 
@@ -27,6 +34,18 @@ public class TestControll {
 		} finally {
 //			MongoConnection.closeConn();
 		}
+	}
+	
+	public Response find(LoginParams params) {
+		DBCollection userCol = MongoConnection.getCollection("data");
+		QueryBuilder qb = QueryBuilder.start()
+							.put("email").is(params.getEmail())
+							.and("password").is(params.getPassword());
+		DBObject queryLogin = qb.get();
+		DBCursor cursor = userCol.find(queryLogin);
+		DBObject user = cursor.next();
+		User lUser = User.fromMongo(user);
+		return Response.ok(lUser).build();
 	}
 
 //	public static void main(String[] args) {

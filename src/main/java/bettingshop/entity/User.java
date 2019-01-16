@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.mongodb.DBObject;
 
 public class User {
 	@JsonTypeId
@@ -140,5 +141,13 @@ public class User {
 		builder.append(role);
 		builder.append("]");
 		return builder.toString();
+	}
+	
+	public static User fromMongo(DBObject user) {
+		return new User((ObjectId)user.get("_id"), 
+				(String)user.get("username"), (String)user.get("password"), 
+				(String)user.get("email"), (String)user.get("lastname"), 
+				(String)user.get("firstname"), (Double)user.get("credit"), 
+				(String)user.get("role"));
 	}
 }
