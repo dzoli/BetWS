@@ -26,14 +26,11 @@ public class UserService {
 		return userBean.save(user);
 	}
 	
-	
-//	@Path("/login")
-//	@POST
-//	@Produces(MediaType.APPLICATION_JSON)
-//	public Response loginSubmit(LoginParams userData) throws Exception {
-//		return tc.find(userData);
-//	}
-	
-	
+	@Path("/login")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response loginSubmit(LoginParams userData) throws Exception {
+		return userBean.find(userData);
+	}
 	
 }

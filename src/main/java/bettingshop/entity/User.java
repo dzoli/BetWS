@@ -1,12 +1,12 @@
 package bettingshop.entity;
 
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeId;
-import com.mongodb.DBObject;
 
 public class User {
 	@JsonTypeId
@@ -143,16 +143,16 @@ public class User {
 		return builder.toString();
 	}
 	
-	public static User fromMongo(DBObject user) {
+	public static User fromMongo(Document document) {
 		User u = new User();
-		u.set_id((ObjectId) user.get("_id"));
-		u.setUsername((String) user.get("username"));
-		u.setPassword((String) user.get("password"));
-		u.setEmail((String) user.get("email"));
-		u.setLastname((String) user.get("lastname"));
-		u.setFirstname((String) user.get("firstname"));
-		u.setCredit((Double) user.get("credit"));
-		u.setRole((String) user.get("role"));
+		u.set_id((ObjectId) document.get("_id"));
+		u.setUsername((String) document.get("username"));
+		u.setPassword((String) document.get("password"));
+		u.setEmail((String) document.get("email"));
+		u.setLastname((String) document.get("lastname"));
+		u.setFirstname((String) document.get("firstname"));
+		u.setCredit((Double) document.get("credit"));
+		u.setRole((String) document.get("role"));
 		return u;
 	}
 }
