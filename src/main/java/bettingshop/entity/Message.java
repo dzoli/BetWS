@@ -7,6 +7,11 @@ import org.bson.types.ObjectId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import bettingshop.convertors.CustomDateDeserializer;
+import bettingshop.convertors.CustomDateSerializer;
 
 public class Message {
 
@@ -14,7 +19,10 @@ public class Message {
 	@JsonIgnore
 	private ObjectId _id;
 	
+	@JsonSerialize(using = CustomDateSerializer.class)
+	@JsonDeserialize(using = CustomDateDeserializer.class)
 	@JsonProperty private Date created;
+	
 	@JsonProperty private User creator;
 	@JsonProperty private String text;
 	

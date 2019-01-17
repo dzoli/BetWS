@@ -25,7 +25,6 @@ public class UserBean {
 	
 	@Inject
 	MongoConnection conn;
-	
 	MongoDatabase db = null;
 	
 	@PostConstruct
@@ -42,8 +41,6 @@ public class UserBean {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			return Response.serverError().build();
-		} finally {
-//			MongoConnection.closeConn();
 		}
 	}
 	
