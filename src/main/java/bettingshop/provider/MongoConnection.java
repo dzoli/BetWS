@@ -1,34 +1,40 @@
 package bettingshop.provider;
 
-import com.mongodb.DBCollection;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
+
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 
+@Singleton
 public class MongoConnection {
+	private static final String DB_URI = 
+			"mongodb+srv://admin:1234@betdbcl-tqqv1.mongodb.net/test?retryWrites=true";
 	
-	public static MongoClient mclient;
+	private MongoDatabase db = null;
+	private MongoClient client = null;
 	
-	// make connection, but first run MongoDB instance!
-	static{
+	@PostConstruct
+	public void init() {
 		// connect to localhost on port 27017 (localhost is default)
-		MongoClientURI uri = new MongoClientURI("mongodb+srv://admin:1234@betdbcl-tqqv1.mongodb.net/test?retryWrites=true");
+		MongoClientURI uri = new MongoClientURI(DB_URI);
 		
-		mclient = new MongoClient(uri);
+		client = new MongoClient(uri);
+		db = client.getDatabase("betdb");
 	}
 	
-	
-	public static MongoDatabase getDatabase(){
-		MongoDatabase db = mclient.getDatabase("betdb");
+	@Lock(LockType.READ)
+	public MongoDatabase getDB(){
 		return db;
 	}
 
-	public static DBCollection getCollection(String collectionName) {
-		return mclient.getDB("betdb").getCollection(collectionName);
-	}
-	
-	public static void closeConn(){
-		mclient.close();
+	@PreDestroy
+	public void dest() {
+		client.close();
 	}
 	
 }
