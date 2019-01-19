@@ -19,14 +19,14 @@ public class ForumService {
 	@Inject
 	ForumBean forumBean;
 	
-//	@Path("/save")
-//	@POST
-//	@Produces(MediaType.APPLICATION_JSON)
-//	@Consumes(MediaType.APPLICATION_JSON)
-//	public Response register(User user) throws Exception {
-//		return userBean.save(user);
-//	}
-//	
+	@Path("/all")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response all() {
+		return forumBean.all();
+	}
+	
 	@Path("/save")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)

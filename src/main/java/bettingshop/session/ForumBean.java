@@ -4,6 +4,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.push;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,7 @@ import bettingshop.util.Collections;
 public class ForumBean {
 	private final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	private final DateFormat DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN, Locale.US);
-	
+
 	@Inject
 	MongoConnection conn;
 	MongoDatabase db = null;
@@ -40,6 +41,36 @@ public class ForumBean {
 	@PostConstruct
 	public void init() {
 		db = conn.getDB();
+	}
+
+	
+	@SuppressWarnings("unchecked")
+	public Response all() {
+		List<Topic> resultList = new ArrayList<Topic>();
+		// fetch all data
+		try {
+			MongoCollection<Document> collection = db.getCollection(Collections.FORUM);
+			FindIterable<Document> findIterable = collection.find();
+			for (Document document : findIterable) {
+				Topic t = new Topic();
+				t.setCreated(DATE_FORMAT.parse(document.get("created", String.class)));
+				t.setCreator(User.fromMongo(document.get("creator", Document.class)));
+				t.setDescription(document.get("description", String.class));
+				t.setName(document.get("name", String.class));
+				List<Message> messages = new ArrayList<Message>();
+				List<Document> mDocument = (List<Document>) document.get("messages");
+				for (Document msg : mDocument) {
+					Message m = Message.fromMongo(msg);
+					messages.add(m);
+				}
+				t.setMessages(messages);
+				resultList.add(t);
+			}
+			return Response.ok(resultList).build();
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -50,7 +81,7 @@ public class ForumBean {
 			String jsonMsg = mapper.writeValueAsString(message);
 			MongoCollection<Document> collection = db.getCollection(Collections.FORUM);
 			collection.updateOne(eq("_id", new ObjectId(topicId)), push("messages", Document.parse(jsonMsg)));
-			
+
 			// fetch all data
 			FindIterable<Document> findIterable = collection.find();
 			for (Document document : findIterable) {
@@ -74,7 +105,7 @@ public class ForumBean {
 			return Response.serverError().build();
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Response saveTopicAndSync(Topic topic) {
 		ObjectMapper mapper = new ObjectMapper();
@@ -83,7 +114,7 @@ public class ForumBean {
 			String jsonTopic = mapper.writeValueAsString(topic);
 			MongoCollection<Document> collection = db.getCollection(Collections.FORUM);
 			collection.insertOne(Document.parse(jsonTopic));
-			
+
 			// fetch all data
 			FindIterable<Document> findIterable = collection.find();
 			for (Document document : findIterable) {
@@ -107,5 +138,5 @@ public class ForumBean {
 			return Response.serverError().build();
 		}
 	}
-	
+
 }
