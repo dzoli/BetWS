@@ -8,23 +8,23 @@ import java.util.Locale;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import bettingshop.convertors.CustomDateDeserializer;
-import bettingshop.convertors.CustomDateSerializer;
+import bettingshop.convertors.DateDeserializer;
+import bettingshop.convertors.DateSerializer;
+import bettingshop.convertors.ObjectIdJsonDeserializer;
+import bettingshop.convertors.ObjectIdJsonSerializer;
 
 public class Message {
 
-	@JsonTypeId
-	@JsonIgnore
+	@JsonDeserialize(using = ObjectIdJsonDeserializer.class)
+	@JsonSerialize(using = ObjectIdJsonSerializer.class)
 	private ObjectId _id;
 	
-	@JsonSerialize(using = CustomDateSerializer.class)
-	@JsonDeserialize(using = CustomDateDeserializer.class)
+	@JsonSerialize(using = DateSerializer.class)
+	@JsonDeserialize(using = DateDeserializer.class)
 	@JsonProperty private Date created;
 	
 	@JsonProperty private User creator;
@@ -89,6 +89,14 @@ public class Message {
 		message.setCreator(User.fromMongo(document.get("creator", Document.class)));
 		message.setText(document.get("text", String.class));
 		return message;
+	}
+
+	public ObjectId get_id() {
+		return _id;
+	}
+
+	public void set_id(ObjectId _id) {
+		this._id = _id;
 	}
 	
 }

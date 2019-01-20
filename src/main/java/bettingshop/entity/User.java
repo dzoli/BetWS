@@ -3,14 +3,19 @@ package bettingshop.entity;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import bettingshop.convertors.ObjectIdJsonDeserializer;
+import bettingshop.convertors.ObjectIdJsonSerializer;
 
 public class User {
-	@JsonTypeId
-	@JsonIgnore
+
+	
+	@JsonDeserialize(using = ObjectIdJsonDeserializer.class)
+	@JsonSerialize(using = ObjectIdJsonSerializer.class)
 	private ObjectId _id;
 	
 	@JsonProperty private String username;
@@ -145,7 +150,7 @@ public class User {
 	
 	public static User fromMongo(Document document) {
 		User u = new User();
-		u.set_id((ObjectId) document.get("_id"));
+		u.set_id(new ObjectId(document.get("_id", String.class)));
 		u.setUsername((String) document.get("username"));
 		u.setPassword((String) document.get("password"));
 		u.setEmail((String) document.get("email"));

@@ -1,13 +1,15 @@
 package bettingshop.session;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import org.bson.Document;
-import com.mongodb.client.model.Filters;
-import static com.mongodb.client.model.Filters.*;
+import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +24,7 @@ import bettingshop.provider.MongoConnection;
 @Stateless
 public class UserBean {
 	private static final String COLL_NAME = "users";
+	private ObjectMapper mapper;
 	
 	@Inject
 	MongoConnection conn;
@@ -29,12 +32,13 @@ public class UserBean {
 	
 	@PostConstruct
 	public void init() {
+		mapper = new ObjectMapper();
 		db = conn.getDB();
 	}
 	
 	public Response save(User newUser) {
 		try {
-			ObjectMapper mapper = new ObjectMapper();
+			newUser.set_id(new ObjectId());
 			String jsonUser = mapper.writeValueAsString(newUser);
 			db.getCollection(COLL_NAME).insertOne(Document.parse(jsonUser));
 			return Response.ok(newUser).build();
@@ -48,19 +52,13 @@ public class UserBean {
 		final MongoCollection<Document> collection = db.getCollection(COLL_NAME);
 		FindIterable<Document> find = collection.find(and(eq("email",params.getEmail()),
 						  	eq("password",params.getPassword())));
-		
-		// get first user with params
-		User lUser = User.fromMongo(find.first());
-		return Response.ok(lUser).build();
+		Document first = find.first();
+		try {
+			return Response.ok(first.toJson()).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
 	}
 
-	public static void main(String[] args) {
-		UserBean tc = new UserBean();
-		
-		User u = new User(null, "dr", "1234", "d@d.com", "dragin", "dusan", 12.3, "user");
-		Response save = tc.save(u);
-		
-		System.out.println(save);
-		
-	}
 }

@@ -31,7 +31,7 @@ public class ForumService {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response register(Topic topic) {
+	public Response saveTopicAndSync(Topic topic) {
 		return forumBean.saveTopicAndSync(topic);
 	}
 	

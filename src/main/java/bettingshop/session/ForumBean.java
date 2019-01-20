@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -57,13 +58,16 @@ public class ForumBean {
 				t.setCreator(User.fromMongo(document.get("creator", Document.class)));
 				t.setDescription(document.get("description", String.class));
 				t.setName(document.get("name", String.class));
+				t.set_id(new ObjectId(document.get("_id", String.class)));
 				List<Message> messages = new ArrayList<Message>();
 				List<Document> mDocument = (List<Document>) document.get("messages");
-				for (Document msg : mDocument) {
-					Message m = Message.fromMongo(msg);
-					messages.add(m);
+				if (mDocument != null && !mDocument.isEmpty()) {
+					for (Document msg : mDocument) {
+						Message m = Message.fromMongo(msg);
+						messages.add(m);
+					}
+					t.setMessages(messages);
 				}
-				t.setMessages(messages);
 				resultList.add(t);
 			}
 			return Response.ok(resultList).build();
@@ -78,9 +82,11 @@ public class ForumBean {
 		ObjectMapper mapper = new ObjectMapper();
 		List<Topic> resultList = new ArrayList<Topic>();
 		try {
+			message.setCreated(new Date());
+			message.set_id(new ObjectId());
 			String jsonMsg = mapper.writeValueAsString(message);
 			MongoCollection<Document> collection = db.getCollection(Collections.FORUM);
-			collection.updateOne(eq("_id", new ObjectId(topicId)), push("messages", Document.parse(jsonMsg)));
+			collection.updateOne(eq("_id", topicId), push("messages", Document.parse(jsonMsg)));
 
 			// fetch all data
 			FindIterable<Document> findIterable = collection.find();
@@ -90,13 +96,16 @@ public class ForumBean {
 				t.setCreator(User.fromMongo(document.get("creator", Document.class)));
 				t.setDescription(document.get("description", String.class));
 				t.setName(document.get("name", String.class));
+				t.set_id(new ObjectId(document.get("_id", String.class)));
 				List<Message> messages = new ArrayList<Message>();
 				List<Document> mDocument = (List<Document>) document.get("messages");
-				for (Document msg : mDocument) {
-					Message m = Message.fromMongo(msg);
-					messages.add(m);
+				if (mDocument != null && !mDocument.isEmpty()) {
+					for (Document msg : mDocument) {
+						Message m = Message.fromMongo(msg);
+						messages.add(m);
+					}
+					t.setMessages(messages);
 				}
-				t.setMessages(messages);
 				resultList.add(t);
 			}
 			return Response.ok(resultList).build();
@@ -111,6 +120,10 @@ public class ForumBean {
 		ObjectMapper mapper = new ObjectMapper();
 		List<Topic> resultList = new ArrayList<Topic>();
 		try {
+			topic.set_id(new ObjectId());
+			if (topic.getMessages() == null || topic.getMessages().isEmpty()) {
+				topic.setMessages(new ArrayList<Message>());
+			}
 			String jsonTopic = mapper.writeValueAsString(topic);
 			MongoCollection<Document> collection = db.getCollection(Collections.FORUM);
 			collection.insertOne(Document.parse(jsonTopic));
@@ -123,13 +136,16 @@ public class ForumBean {
 				t.setCreator(User.fromMongo(document.get("creator", Document.class)));
 				t.setDescription(document.get("description", String.class));
 				t.setName(document.get("name", String.class));
+				t.set_id(new ObjectId(document.get("_id", String.class)));
 				List<Message> messages = new ArrayList<Message>();
 				List<Document> mDocument = (List<Document>) document.get("messages");
-				for (Document msg : mDocument) {
-					Message m = Message.fromMongo(msg);
-					messages.add(m);
-				}
-				t.setMessages(messages);
+				if (mDocument != null && !mDocument.isEmpty()) {
+					for (Document msg : mDocument) {
+						Message m = Message.fromMongo(msg);
+						messages.add(m);
+					}
+					t.setMessages(messages);
+				} 
 				resultList.add(t);
 			}
 			return Response.ok(resultList).build();

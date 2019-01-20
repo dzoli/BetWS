@@ -5,23 +5,23 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import bettingshop.convertors.CustomDateDeserializer;
-import bettingshop.convertors.CustomDateSerializer;
+import bettingshop.convertors.DateDeserializer;
+import bettingshop.convertors.DateSerializer;
+import bettingshop.convertors.ObjectIdJsonDeserializer;
+import bettingshop.convertors.ObjectIdJsonSerializer;
 
 public class Topic {
 
-	@JsonTypeId
-	@JsonIgnore
+	@JsonDeserialize(using = ObjectIdJsonDeserializer.class)
+	@JsonSerialize(using = ObjectIdJsonSerializer.class)
 	private ObjectId _id;
 
-	@JsonSerialize(using = CustomDateSerializer.class)
-	@JsonDeserialize(using = CustomDateDeserializer.class)
+	@JsonSerialize(using = DateSerializer.class)
+	@JsonDeserialize(using = DateDeserializer.class)
 	@JsonProperty private Date created;
 	@JsonProperty private User creator;
 	@JsonProperty private String name;
@@ -53,6 +53,7 @@ public class Topic {
 
 	public Topic() {
 		super();
+		this.set_id(new ObjectId());
 	}
 
 	public String getName() {
@@ -110,6 +111,14 @@ public class Topic {
 		builder.append(messages);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	public ObjectId get_id() {
+		return _id;
+	}
+
+	public void set_id(ObjectId _id) {
+		this._id = _id;
 	}
 
 }
