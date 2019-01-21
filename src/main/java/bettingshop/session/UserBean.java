@@ -18,6 +18,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import bettingshop.data.LoginParams;
+import bettingshop.data.UserData;
 import bettingshop.entity.User;
 import bettingshop.provider.MongoConnection;
 
@@ -25,6 +26,7 @@ import bettingshop.provider.MongoConnection;
 public class UserBean {
 	private static final String COLL_NAME = "users";
 	private ObjectMapper mapper;
+	private MongoCollection<Document> collection; 
 	
 	@Inject
 	MongoConnection conn;
@@ -34,13 +36,14 @@ public class UserBean {
 	public void init() {
 		mapper = new ObjectMapper();
 		db = conn.getDB();
+		collection = db.getCollection(COLL_NAME);
 	}
 	
 	public Response save(User newUser) {
 		try {
 			newUser.set_id(new ObjectId());
 			String jsonUser = mapper.writeValueAsString(newUser);
-			db.getCollection(COLL_NAME).insertOne(Document.parse(jsonUser));
+			collection.insertOne(Document.parse(jsonUser));
 			return Response.ok(newUser).build();
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
@@ -49,7 +52,6 @@ public class UserBean {
 	}
 	
 	public Response find(LoginParams params) {
-		final MongoCollection<Document> collection = db.getCollection(COLL_NAME);
 		FindIterable<Document> find = collection.find(and(eq("email",params.getEmail()),
 						  	eq("password",params.getPassword())));
 		Document first = find.first();
@@ -61,4 +63,14 @@ public class UserBean {
 		}
 	}
 
+	public Response addCredit(UserData body) {
+		String id = body.getUser().get_id().toString();
+		Double credit = body.getCredit();
+		Document userDoc = collection.find(eq("_id", id)).first();
+		User user = User.fromMongo(userDoc);
+		credit += user.getCredit();
+		collection.updateOne(eq("_id", id), new Document("$set", new Document("credit", credit)));
+		return Response.ok(credit).build();
+	}
+	
 }

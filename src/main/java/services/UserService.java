@@ -9,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import bettingshop.data.LoginParams;
+import bettingshop.data.UserData;
 import bettingshop.entity.User;
 import bettingshop.session.UserBean;
 
@@ -32,5 +33,13 @@ public class UserService {
 	public Response loginSubmit(LoginParams userData) throws Exception {
 		return userBean.find(userData);
 	}
+
+	@Path("/addCredit")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response addCredit(UserData body) throws Exception {
+		return userBean.addCredit(body);
+	}
+
 	
 }
