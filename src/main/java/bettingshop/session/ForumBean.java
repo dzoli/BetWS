@@ -1,7 +1,7 @@
 package bettingshop.session;
 
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Updates.push;
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Updates.*;
 
 import java.text.DateFormat;
 import java.text.ParseException;

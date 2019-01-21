@@ -1,7 +1,7 @@
 package bettingshop.session;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Updates.*;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
@@ -21,10 +21,10 @@ import bettingshop.data.LoginParams;
 import bettingshop.data.UserData;
 import bettingshop.entity.User;
 import bettingshop.provider.MongoConnection;
+import bettingshop.util.Collections;
 
 @Stateless
 public class UserBean {
-	private static final String COLL_NAME = "users";
 	private ObjectMapper mapper;
 	private MongoCollection<Document> collection; 
 	
@@ -36,7 +36,7 @@ public class UserBean {
 	public void init() {
 		mapper = new ObjectMapper();
 		db = conn.getDB();
-		collection = db.getCollection(COLL_NAME);
+		collection = db.getCollection(Collections.USERS);
 	}
 	
 	public Response save(User newUser) {
@@ -69,7 +69,7 @@ public class UserBean {
 		Document userDoc = collection.find(eq("_id", id)).first();
 		User user = User.fromMongo(userDoc);
 		credit += user.getCredit();
-		collection.updateOne(eq("_id", id), new Document("$set", new Document("credit", credit)));
+		collection.updateOne(eq("_id", id), set("credit", credit));
 		return Response.ok(credit).build();
 	}
 	
