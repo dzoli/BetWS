@@ -13,7 +13,9 @@ import com.mongodb.client.MongoDatabase;
 @Singleton
 public class MongoConnection {
 	private static final String DB_URI = 
-			"mongodb+srv://admin:1234@betdbcl-tqqv1.mongodb.net/test?retryWrites=true";
+			"mongodb+srv://admin:1234@betcluster-zibhd.mongodb.net/test?retryWrites=true";
+//			"mongodb+srv://admin:1234@betdbcl-tqqv1.mongodb.net/test?retryWrites=true";
+			
 	
 	private MongoDatabase db = null;
 	private MongoClient client = null;

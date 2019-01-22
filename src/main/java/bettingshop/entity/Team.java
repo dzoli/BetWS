@@ -1,5 +1,6 @@
 package bettingshop.entity;
 
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -80,6 +81,15 @@ public class Team {
 		builder.append(stadium);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	public static Team fromMongo(Document document) {
+		Team team = new Team();
+		team.set_id(new ObjectId(document.getString("_id")));
+		team.setCity(document.getString("city"));
+		team.setName(document.getString("name"));
+		team.setStadium(document.getString("stadium"));
+		return team;
 	}
 	
 }

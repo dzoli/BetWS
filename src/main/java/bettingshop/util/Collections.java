@@ -4,7 +4,8 @@ public interface Collections {
 	String USERS = "users";
 	String FORUM = "forum";
 	String TICKET = "ticket";
-	String TEAMS = "team";
+	String TEAM = "team";
+	String GAME = "game";
 	
 	
 }
