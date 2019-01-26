@@ -1,7 +1,9 @@
 package bettingshop.session;
 
-import java.text.ParseException;
+import static com.mongodb.client.model.Filters.eq;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -10,14 +12,20 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import bettingshop.data.BetData;
 import bettingshop.data.GamesData;
+import bettingshop.data.TicketData;
+import bettingshop.entity.Bet;
 import bettingshop.entity.Game;
+import bettingshop.entity.Ticket;
+import bettingshop.entity.User;
 import bettingshop.provider.MongoConnection;
 import bettingshop.util.Collections;
 
@@ -25,8 +33,9 @@ import bettingshop.util.Collections;
 public class TicketBean {
 	private ObjectMapper mapper;
 	private MongoCollection<Document> ticketColl; 
-	private MongoCollection<Document> gamesColl; 
-	 
+	private MongoCollection<Document> gameColl; 
+	private MongoCollection<Document> userColl; 
+	
 	
 	@Inject
 	MongoConnection conn;
@@ -37,12 +46,13 @@ public class TicketBean {
 		mapper = new ObjectMapper();
 		db = conn.getDB();
 		ticketColl = db.getCollection(Collections.TICKET);
-		gamesColl = db.getCollection(Collections.GAME);
+		gameColl = db.getCollection(Collections.GAME);
+		userColl = db.getCollection(Collections.USERS);
 	}
 
 	public Response getAllGamesForDate(String date) {
 		List<Game> games = new ArrayList<Game>();
-		FindIterable<Document> findIterable = gamesColl.find();
+		FindIterable<Document> findIterable = gameColl.find();
 		try {
 			for (Document document : findIterable) {
 				Game game = Game.fromMongo(document);
@@ -50,6 +60,62 @@ public class TicketBean {
 			}
 			final GamesData gd = new GamesData(games);
 			return Response.ok(gd).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
+	}
+	
+	public Response saveTicket(TicketData body) {
+		Ticket ticket = new Ticket();
+		double totalOdd = 1.;
+		boolean valid = true;
+		try {
+			FindIterable<Document> itUsers = userColl.find(eq("_id",body.getUserKey()));
+			final User user = User.fromMongo(itUsers.first());
+			final Double money = body.getSum();
+			List<Bet> ticketBets = new ArrayList<Bet>();
+			for (BetData bData : body.getBets()) {
+				FindIterable<Document> itGames = gameColl.find(eq("_id", bData.getGameKey()));
+				Game game = Game.fromMongo(itGames.first());
+				double tmpOdd = 1.;
+				
+				// check validity
+				if ((game.getHomeScore() - game.getAwayScore()) == 0) {
+					if (bData.getBet() != 0) {
+						valid = false;
+					}
+					tmpOdd = game.getEgalOdd();
+				} else if ((game.getHomeScore() - game.getAwayScore()) < 0) {
+					if (bData.getBet() > 0) {
+						valid = false;
+					}
+					tmpOdd = game.getAwayOdd();
+				} else {
+					if (bData.getBet() < 0) {
+						valid = false;
+					}
+					tmpOdd = game.getHomeOdd();
+				}
+				totalOdd *= tmpOdd;
+				
+				Bet bet = new Bet();
+				bet.setGame(game);
+				bet.setBet(bData.getBet());
+				ticketBets.add(bet);
+			}
+			ticket.setBets(ticketBets);
+			ticket.setStake(money);
+			ticket.setPotentionalWinnings(totalOdd * money);
+			ticket.setValid(valid);
+			ticket.setUser(user);
+			ticket.setTime(new Date());
+			ticket.set_id(new ObjectId());
+			
+			String jsonTicket = mapper.writeValueAsString(ticket);
+			ticketColl.insertOne(Document.parse(jsonTicket));
+			
+			return Response.ok(ticket).build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.serverError().build();

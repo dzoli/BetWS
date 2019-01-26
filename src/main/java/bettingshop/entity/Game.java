@@ -26,6 +26,7 @@ public class Game {
 	@JsonDeserialize(using = DateDeserializer.class)
 	private Date time;
 	
+	@JsonProperty private String city;
 	@JsonProperty private Double awayOdd;
 	@JsonProperty private Double homeOdd;
 	@JsonProperty private Double egalOdd;
@@ -33,6 +34,7 @@ public class Game {
 	@JsonProperty private int homeScore;
 	@JsonProperty private Team team1;
 	@JsonProperty private Team team2;
+	
 	
 	/**
 	 * @param time
@@ -133,6 +135,14 @@ public class Game {
 		this.team2 = team2;
 	}
 
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -162,6 +172,7 @@ public class Game {
 		Game game = new Game();
 		game.set_id(new ObjectId(document.getString("_id")));
 		game.setTime(TimeUtils.DATE_FORMAT.parse(document.getString("time")));
+		game.setCity(document.getString("city"));
 		game.setAwayOdd(document.getDouble("awayOdd"));
 		game.setHomeOdd(document.getDouble("homeOdd"));
 		game.setEgalOdd(document.getDouble("egalOdd"));
@@ -171,5 +182,7 @@ public class Game {
 		game.setTeam2(Team.fromMongo(document.get("team2", Document.class)));
 		return game;
 	}
+
+	
 	
 }
