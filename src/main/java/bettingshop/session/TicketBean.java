@@ -1,9 +1,11 @@
 package bettingshop.session;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.set;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -67,12 +69,16 @@ public class TicketBean {
 	}
 	
 	public Response saveTicket(TicketData body) {
+		final String ERROR_MESSAGE = "No sufficient funds.";
 		Ticket ticket = new Ticket();
 		double totalOdd = 1.;
 		boolean valid = true;
 		try {
 			FindIterable<Document> itUsers = userColl.find(eq("_id",body.getUserKey()));
 			final User user = User.fromMongo(itUsers.first());
+			if ((user.getCredit() - body.getSum()) < 0) {
+				return Response.status(Response.Status.EXPECTATION_FAILED).entity(ERROR_MESSAGE).build();
+			}
 			final Double money = body.getSum();
 			List<Bet> ticketBets = new ArrayList<Bet>();
 			for (BetData bData : body.getBets()) {
@@ -111,6 +117,9 @@ public class TicketBean {
 			ticket.setUser(user);
 			ticket.setTime(new Date());
 			ticket.set_id(new ObjectId());
+
+			userColl.updateOne(eq("_id", body.getUserKey()), 
+							   set("credit", user.getCredit() - body.getSum()));
 			
 			String jsonTicket = mapper.writeValueAsString(ticket);
 			ticketColl.insertOne(Document.parse(jsonTicket));
