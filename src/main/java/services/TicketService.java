@@ -34,8 +34,8 @@ public class TicketService {
 		return ticketBean.saveTicket(body);
 	}
 	
-	@Path("/tickets")
-	@POST
+	@Path("/all")
+	@GET
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response allTickets() {

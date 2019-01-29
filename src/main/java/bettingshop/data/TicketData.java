@@ -8,6 +8,7 @@ public class TicketData implements Serializable{
 	
 	private String userKey;
 	private Double sum;
+	private Double totalOdd;
 	private List<BetData> bets;
 	/**
 	 * @param userKey
@@ -68,6 +69,12 @@ public class TicketData implements Serializable{
 		builder.append(super.toString());
 		builder.append("]");
 		return builder.toString();
+	}
+	public Double getTotalOdd() {
+		return totalOdd;
+	}
+	public void setTotalOdd(Double totalOdd) {
+		this.totalOdd = totalOdd;
 	}
 	
 }

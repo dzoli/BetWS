@@ -5,9 +5,9 @@ import static com.mongodb.client.model.Updates.set;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
@@ -35,15 +35,14 @@ import bettingshop.util.Collections;
 @Stateless
 public class TicketBean {
 	private ObjectMapper mapper;
-	private MongoCollection<Document> ticketColl; 
-	private MongoCollection<Document> gameColl; 
-	private MongoCollection<Document> userColl; 
-	
-	
+	private MongoCollection<Document> ticketColl;
+	private MongoCollection<Document> gameColl;
+	private MongoCollection<Document> userColl;
+
 	@Inject
 	MongoConnection conn;
 	MongoDatabase db = null;
-	
+
 	@PostConstruct
 	public void init() {
 		mapper = new ObjectMapper();
@@ -68,14 +67,14 @@ public class TicketBean {
 			return Response.serverError().build();
 		}
 	}
-	
+
 	public Response saveTicket(TicketData body) {
 		final String ERROR_MESSAGE = "No sufficient funds.";
 		Ticket ticket = new Ticket();
 		double totalOdd = 1.;
 		boolean valid = true;
 		try {
-			FindIterable<Document> itUsers = userColl.find(eq("_id",body.getUserKey()));
+			FindIterable<Document> itUsers = userColl.find(eq("_id", body.getUserKey()));
 			final User user = User.fromMongo(itUsers.first());
 			if ((user.getCredit() - body.getSum()) < 0) {
 				return Response.status(Response.Status.EXPECTATION_FAILED).entity(ERROR_MESSAGE).build();
@@ -86,26 +85,23 @@ public class TicketBean {
 				FindIterable<Document> itGames = gameColl.find(eq("_id", bData.getGameKey()));
 				Game game = Game.fromMongo(itGames.first());
 				double tmpOdd = 1.;
-				
+
 				// check validity
 				if ((game.getHomeScore() - game.getAwayScore()) == 0) {
 					if (bData.getBet() != 0) {
 						valid = false;
 					}
-					tmpOdd = game.getEgalOdd();
 				} else if ((game.getHomeScore() - game.getAwayScore()) < 0) {
 					if (bData.getBet() > 0) {
 						valid = false;
 					}
-					tmpOdd = game.getAwayOdd();
 				} else {
 					if (bData.getBet() < 0) {
 						valid = false;
 					}
-					tmpOdd = game.getHomeOdd();
 				}
 				totalOdd *= tmpOdd;
-				
+
 				Bet bet = new Bet();
 				bet.setGame(game);
 				bet.setBet(bData.getBet());
@@ -116,15 +112,15 @@ public class TicketBean {
 			ticket.setPotentionalWinnings(totalOdd * money);
 			ticket.setValid(valid);
 			ticket.setUser(user);
+			ticket.setTotalOdd(totalOdd);
 			ticket.setTime(new Date());
 			ticket.set_id(new ObjectId());
 
-			userColl.updateOne(eq("_id", body.getUserKey()), 
-							   set("credit", user.getCredit() - body.getSum()));
-			
+			userColl.updateOne(eq("_id", body.getUserKey()), set("credit", user.getCredit() - body.getSum()));
+
 			String jsonTicket = mapper.writeValueAsString(ticket);
 			ticketColl.insertOne(Document.parse(jsonTicket));
-			
+
 			return Response.ok(ticket).build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -133,11 +129,22 @@ public class TicketBean {
 	}
 
 	public Response allTickets() {
-		FindIterable<Document> iterable = ticketColl.find();
-		for (Document document : iterable) {
-			System.out.println(document);
+		final String ERROR_MESSAGE = "There are no ticktes";
+		final FindIterable<Document> iterable = ticketColl.find();
+		if (iterable == null || iterable.first() == null) {
+			return Response.status(Response.Status.EXPECTATION_FAILED)
+						  .entity(ERROR_MESSAGE)
+						  .build();
+		} else {
+			// Spliterator is like list.stream()
+			// map ticket object [id...], [id...] to string
+			// use ',' as delimiter and '[' ,']' for prefix and suffix to create collection of tickets
+			final String jsonTickets = 
+					StreamSupport.stream(iterable.spliterator(), false)
+								.map(Document::toJson)
+								.collect(Collectors.joining(", ", "[", "]"));
+			return Response.ok(jsonTickets).build();
 		}
-		return null;
 	}
 
 }
