@@ -4,6 +4,9 @@ public class BetData {
 
 	private String gameKey;
 	private int bet;
+	public String home;
+	public String away;
+	public String time;
 	/**
 	 * 
 	 */
@@ -31,6 +34,24 @@ public class BetData {
 	}
 	public void setBet(int bet) {
 		this.bet = bet;
+	}
+	public String getHome() {
+		return home;
+	}
+	public void setHome(String home) {
+		this.home = home;
+	}
+	public String getAway() {
+		return away;
+	}
+	public void setAway(String away) {
+		this.away = away;
+	}
+	public String getTime() {
+		return time;
+	}
+	public void setTime(String time) {
+		this.time = time;
 	}
 	@Override
 	public String toString() {
