@@ -84,7 +84,6 @@ public class TicketBean {
 			for (BetData bData : body.getBets()) {
 				FindIterable<Document> itGames = gameColl.find(eq("_id", bData.getGameKey()));
 				Game game = Game.fromMongo(itGames.first());
-				double tmpOdd = 1.;
 
 				// check validity
 				if ((game.getHomeScore() - game.getAwayScore()) == 0) {
@@ -100,8 +99,6 @@ public class TicketBean {
 						valid = false;
 					}
 				}
-				totalOdd *= tmpOdd;
-
 				Bet bet = new Bet();
 				bet.setGame(game);
 				bet.setBet(bData.getBet());
