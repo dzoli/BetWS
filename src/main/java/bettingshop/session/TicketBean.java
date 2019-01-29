@@ -6,6 +6,7 @@ import static com.mongodb.client.model.Updates.set;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -129,6 +130,14 @@ public class TicketBean {
 			e.printStackTrace();
 			return Response.serverError().build();
 		}
+	}
+
+	public Response allTickets() {
+		FindIterable<Document> iterable = ticketColl.find();
+		for (Document document : iterable) {
+			System.out.println(document);
+		}
+		return null;
 	}
 
 }

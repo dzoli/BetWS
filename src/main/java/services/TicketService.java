@@ -30,9 +30,16 @@ public class TicketService {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response allGamesForDate(TicketData body) {
+	public Response save(TicketData body) {
 		return ticketBean.saveTicket(body);
 	}
 	
+	@Path("/tickets")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response allTickets() {
+		return ticketBean.allTickets();
+	}
 	
 }
