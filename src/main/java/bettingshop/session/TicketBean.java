@@ -69,23 +69,23 @@ public class TicketBean {
 	}
 
 	public Response saveTicket(TicketData body) {
-		final String ERROR_MESSAGE = "No sufficient funds.";
 		Ticket ticket = new Ticket();
-		double totalOdd = 1.;
 		boolean valid = true;
 		try {
 			FindIterable<Document> itUsers = userColl.find(eq("_id", body.getUserKey()));
 			final User user = User.fromMongo(itUsers.first());
-			if ((user.getCredit() - body.getSum()) < 0) {
-				return Response.status(Response.Status.EXPECTATION_FAILED).entity(ERROR_MESSAGE).build();
+			String check = checkBodyValidity(body, user);
+			if (check != null) {
+				return Response.status(Response.Status.EXPECTATION_FAILED).entity(check).build();
 			}
+			final double totalOdd = body.getTotalOdd();
 			final Double money = body.getSum();
 			List<Bet> ticketBets = new ArrayList<Bet>();
 			for (BetData bData : body.getBets()) {
 				FindIterable<Document> itGames = gameColl.find(eq("_id", bData.getGameKey()));
 				Game game = Game.fromMongo(itGames.first());
 
-				// check validity
+				// check ticket 	validity
 				if ((game.getHomeScore() - game.getAwayScore()) == 0) {
 					if (bData.getBet() != 0) {
 						valid = false;
@@ -125,9 +125,12 @@ public class TicketBean {
 		}
 	}
 
-	public Response allTickets() {
+	public Response allForUser(String userId) {
+		System.out.println("user" + userId);
 		final String ERROR_MESSAGE = "There are no ticktes";
-		final FindIterable<Document> iterable = ticketColl.find();
+		final FindIterable<Document> iterable = ticketColl.find(eq("user._id", userId));
+		String jsont = StreamSupport.stream(iterable.spliterator(), false)
+				.map(Document::toJson).collect(Collectors.joining(", ", "[", "]"));;
 		if (iterable == null || iterable.first() == null) {
 			return Response.status(Response.Status.EXPECTATION_FAILED)
 						  .entity(ERROR_MESSAGE)
@@ -141,6 +144,20 @@ public class TicketBean {
 								.map(Document::toJson)
 								.collect(Collectors.joining(", ", "[", "]"));
 			return Response.ok(jsonTickets).build();
+		}
+	}
+	
+	private String checkBodyValidity(TicketData body, User user) {
+		if (body.getSum() < 10) {
+			return "Minimum cache amount is 10$.";
+		} else if (body.getBets() == null || body.getBets().isEmpty()) {
+			return "Please select at least one game.";
+		} else if (body.getTotalOdd() == null || body.getTotalOdd() == 0) {
+			return "Total odd is 0.00";
+		} else if ((user.getCredit() - body.getSum()) < 0) {
+			return "No sufficient funds.";
+		}else {
+			return null;
 		}
 	}
 
