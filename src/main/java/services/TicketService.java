@@ -20,11 +20,10 @@ public class TicketService {
 	@Inject
 	TicketBean ticketBean;
 
-	@Path("/game/{date}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response allGamesForDate(@PathParam(value = "date") String date) {
-		return ticketBean.getAllGamesForDate(date);
+	public Response allGamesForDate(@QueryParam(value = "id") String id) {
+		return ticketBean.getAllGamesForDate(id);
 	}
 
 	@Path("/save")
