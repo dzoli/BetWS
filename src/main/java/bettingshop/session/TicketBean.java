@@ -85,17 +85,7 @@ public class TicketBean {
 				FindIterable<Document> itGames = gameColl.find(eq("_id", bData.getGameKey()));
 				Game game = Game.fromMongo(itGames.first());
 
-				// check ticket validity
-				int deltaResult = game.getHomeScore() - game.getAwayScore();
-				int result = bData.getBet();
-				if(deltaResult > 0 && result != 1) {
-					valid = false;
-				} else if (deltaResult == 0 && result != 0) {
-					valid = false;
-				} else if (deltaResult < 0 && result != 2) {
-					valid = false;
-				}
-				
+				valid = checkTicketValidity(bData, game);
 				Bet bet = new Bet();
 				bet.setGame(game);
 				bet.setBet(bData.getBet());
@@ -122,28 +112,38 @@ public class TicketBean {
 		}
 	}
 
+	private boolean checkTicketValidity(BetData bData, Game game) {
+		int deltaResult = game.getHomeScore() - game.getAwayScore();
+		int result = bData.getBet();
+		if((deltaResult > 0 && result != 1)  || 
+		   (deltaResult == 0 && result != 0) ||
+		   (deltaResult < 0 && result != 2)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	public Response allForUser(String userId) {
 		System.out.println("user" + userId);
 		final String ERROR_MESSAGE = "There are no ticktes";
 		final FindIterable<Document> iterable = ticketColl.find(eq("user._id", userId));
-		String jsont = StreamSupport.stream(iterable.spliterator(), false)
-				.map(Document::toJson).collect(Collectors.joining(", ", "[", "]"));;
+		String jsont = StreamSupport.stream(iterable.spliterator(), false).map(Document::toJson)
+				.collect(Collectors.joining(", ", "[", "]"));
+		;
 		if (iterable == null || iterable.first() == null) {
-			return Response.status(Response.Status.EXPECTATION_FAILED)
-						  .entity(ERROR_MESSAGE)
-						  .build();
+			return Response.status(Response.Status.EXPECTATION_FAILED).entity(ERROR_MESSAGE).build();
 		} else {
 			// Spliterator is like list.stream()
 			// map ticket object [id...], [id...] to string
-			// use ',' as delimiter and '[' ,']' for prefix and suffix to create collection of tickets
-			final String jsonTickets = 
-					StreamSupport.stream(iterable.spliterator(), false)
-								.map(Document::toJson)
-								.collect(Collectors.joining(", ", "[", "]"));
+			// use ',' as delimiter and '[' ,']' for prefix and suffix to create collection
+			// of tickets
+			final String jsonTickets = StreamSupport.stream(iterable.spliterator(), false).map(Document::toJson)
+					.collect(Collectors.joining(", ", "[", "]"));
 			return Response.ok(jsonTickets).build();
 		}
 	}
-	
+
 	private String checkBodyValidity(TicketData body, User user) {
 		if (body.getSum() < 10) {
 			return "Minimum cache amount is 10$.";
@@ -153,7 +153,7 @@ public class TicketBean {
 			return "Total odd is 0.00";
 		} else if ((user.getCredit() - body.getSum()) < 0) {
 			return "No sufficient funds.";
-		}else {
+		} else {
 			return null;
 		}
 	}
