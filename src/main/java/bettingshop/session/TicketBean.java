@@ -85,20 +85,17 @@ public class TicketBean {
 				FindIterable<Document> itGames = gameColl.find(eq("_id", bData.getGameKey()));
 				Game game = Game.fromMongo(itGames.first());
 
-				// check ticket 	validity
-				if ((game.getHomeScore() - game.getAwayScore()) == 0) {
-					if (bData.getBet() != 0) {
-						valid = false;
-					}
-				} else if ((game.getHomeScore() - game.getAwayScore()) < 0) {
-					if (bData.getBet() > 0) {
-						valid = false;
-					}
-				} else {
-					if (bData.getBet() < 0) {
-						valid = false;
-					}
+				// check ticket validity
+				int deltaResult = game.getHomeScore() - game.getAwayScore();
+				int result = bData.getBet();
+				if(deltaResult > 0 && result != 1) {
+					valid = false;
+				} else if (deltaResult == 0 && result != 0) {
+					valid = false;
+				} else if (deltaResult < 0 && result != 2) {
+					valid = false;
 				}
+				
 				Bet bet = new Bet();
 				bet.setGame(game);
 				bet.setBet(bData.getBet());
